@@ -19,7 +19,7 @@ type md struct {
 	template string
 }
 
-func build(basedir string) {
+func scan(basedir string) {
 	fmt.Printf("Building site at %s\n", basedir)
 
 	htmlFiles := []html{}

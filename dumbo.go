@@ -8,12 +8,13 @@ import (
 func main() {
 	args := os.Args[1:]
 
-	if len(args) != 1 {
+	if len(args) != 2 {
 		fmt.Println("Incorrect number of arguments")
 		os.Exit(1)
 	}
 
 	baseDir := args[0]
+	// destDir := args[1]
 
-	build(baseDir)
+	scan(baseDir)
 }
