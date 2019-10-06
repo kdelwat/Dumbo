@@ -8,22 +8,17 @@ import (
 	"strings"
 )
 
-type html struct {
-	source string
-	dest   string
+type inputFile struct {
+	source    string
+	dest      string
+	template  string
+	extension string
 }
 
-type md struct {
-	source   string
-	dest     string
-	template string
-}
-
-func scan(basedir string) {
+func scan(basedir string) ([]inputFile, error) {
 	fmt.Printf("Building site at %s\n", basedir)
 
-	htmlFiles := []html{}
-	mdFiles := []md{}
+	inputFiles := []inputFile{}
 
 	err := filepath.Walk(basedir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -43,7 +38,7 @@ func scan(basedir string) {
 		fmt.Printf("\tExtension: %v\n", extension)
 		fmt.Printf("\tDestination: %v\n", dest)
 		if extension == ".html" {
-			htmlFiles = append(htmlFiles, html{source: path, dest: dest})
+			inputFiles = append(inputFiles, inputFile{source: path, dest: dest, extension: "html"})
 		}
 
 		if extension == ".md" {
@@ -54,18 +49,17 @@ func scan(basedir string) {
 			}
 
 			fmt.Printf("\tTemplate: %v\n", template)
-			mdFiles = append(mdFiles, md{source: path, dest: dest, template: template})
+			inputFiles = append(inputFiles, inputFile{source: path, dest: dest, template: template, extension: "md"})
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		fmt.Printf("Error scanning site directory: %v\n", err)
+		return nil, fmt.Errorf("Error scanning site directory: %v\n", err)
 	}
 
-	fmt.Println(htmlFiles)
-	fmt.Println(mdFiles)
+	return inputFiles, nil
 }
 
 func getDest(path string, basedir string) string {

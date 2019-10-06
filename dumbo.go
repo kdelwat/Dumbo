@@ -14,7 +14,14 @@ func main() {
 	}
 
 	baseDir := args[0]
-	// destDir := args[1]
+	destDir := args[1]
 
-	scan(baseDir)
+	inputFiles, err := scan(baseDir)
+
+	if err != nil {
+		fmt.Printf("%v\n", inputFiles)
+		os.Exit(1)
+	}
+
+	build(inputFiles, destDir)
 }
