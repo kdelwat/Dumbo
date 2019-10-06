@@ -19,9 +19,17 @@ func main() {
 	inputFiles, err := scan(baseDir)
 
 	if err != nil {
-		fmt.Printf("%v\n", inputFiles)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	build(inputFiles, destDir)
+	fmt.Println("LOADING TEMPLATES")
+	templates, err := loadTemplates(inputFiles, baseDir)
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	build(inputFiles, templates, destDir)
 }
