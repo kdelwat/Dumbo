@@ -17,7 +17,10 @@ type templateInput struct {
 	Title   string
 }
 
+// build takes input file metadata and templates as input and builds the site in the desired
+// output directory
 func build(inputFiles []inputFile, templates map[string]*template.Template, destDir string) error {
+	// If the output directory exists, delete it ready for rebuild
 	doesOutputDirExist, err := exists(destDir)
 
 	if err != nil {
@@ -33,6 +36,7 @@ func build(inputFiles []inputFile, templates map[string]*template.Template, dest
 
 	}
 
+	// Create the output directory
 	err = os.MkdirAll(destDir, 0755)
 
 	if err != nil {
@@ -44,7 +48,6 @@ func build(inputFiles []inputFile, templates map[string]*template.Template, dest
 		err = buildFile(input, templates, destDir)
 
 		if err != nil {
-			fmt.Println(err)
 			return err
 		}
 	}
@@ -52,8 +55,17 @@ func build(inputFiles []inputFile, templates map[string]*template.Template, dest
 	return nil
 }
 
+// buildFile renders an input file as HTML
 func buildFile(input inputFile, templates map[string]*template.Template, destDir string) error {
+	// Get the output filename
 	destFileName := makeDestFilename(input.dest, destDir)
+
+	// Create the path to the filename if needed
+	err := os.MkdirAll(filepath.Dir(destFileName), 0755)
+
+	if err != nil {
+		return fmt.Errorf("Could not create directory %q: %v", filepath.Dir(destFileName), err)
+	}
 
 	if input.extension == "html" {
 		return buildHTML(input, destFileName)
@@ -64,9 +76,8 @@ func buildFile(input inputFile, templates map[string]*template.Template, destDir
 	}
 }
 
+// buildHTML builds a HTML file by copying it from input to output unmodified
 func buildHTML(input inputFile, dest string) error {
-	fmt.Printf("Building HTML file\n\tSource: %q\n\tDest: %q\n", input.source, dest)
-
 	contents, err := ioutil.ReadFile(input.source)
 
 	if err != nil {
@@ -79,26 +90,24 @@ func buildHTML(input inputFile, dest string) error {
 		return fmt.Errorf("Could not write file %q: %v", dest, err)
 	}
 
+	fmt.Printf("[BUILT]   %q\n", dest)
+
 	return nil
 }
 
+// buildMD builds a Markdown file by rendering it as HTML and including it in the relevant template
 func buildMD(input inputFile, templates map[string]*template.Template, dest string) error {
-	fmt.Printf("Building MD file\n\tSource: %q\n\tDest: %q\n\tTemplate: %v\n", input.source, dest, input.template)
-
+	// Read the Markdown file
 	contents, err := ioutil.ReadFile(input.source)
 
 	if err != nil {
 		return fmt.Errorf("Could not read file %q: %v", input.source, err)
 	}
 
+	// Render as HTML
 	html := blackfriday.Run(contents)
 
-	err = os.MkdirAll(filepath.Dir(dest), 0755)
-
-	if err != nil {
-		return fmt.Errorf("Could not create directory %q: %v", filepath.Dir(dest), err)
-	}
-
+	// Open the destination file for writing
 	outFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE, 0644)
 
 	if err != nil {
@@ -107,6 +116,7 @@ func buildMD(input inputFile, templates map[string]*template.Template, dest stri
 
 	w := bufio.NewWriter(outFile)
 
+	// Render the template and write it to the destination
 	templates[input.template].Execute(w, templateInput{Content: string(html), Title: "A title"})
 
 	err = w.Flush()
@@ -120,6 +130,8 @@ func buildMD(input inputFile, templates map[string]*template.Template, dest stri
 	if err != nil {
 		return fmt.Errorf("Could not close file %q: %v", dest, err)
 	}
+
+	fmt.Printf("[BUILT]   %q\n", dest)
 
 	return nil
 }

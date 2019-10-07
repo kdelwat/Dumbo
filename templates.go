@@ -7,28 +7,26 @@ import (
 	"text/template"
 )
 
+// loadTemplates loads all HTML template files that will be used to render Markdown
 func loadTemplates(inputFiles []inputFile, baseDir string) (map[string]*template.Template, error) {
+	// Create array of template names that will be used in building
 	templateNames := []string{}
-
-	// Load templates
 	for _, input := range inputFiles {
 		if input.template == "" || hasSelectedTemplate(templateNames, input.template) {
 			continue
 		}
 
 		templateNames = append(templateNames, input.template)
+		fmt.Printf("[LOADED]  %v\n", input.template)
 	}
 
-	fmt.Println(templateNames)
-
+	// For each template name, read it from the _templates directory in the input
 	templates := make(map[string]*template.Template)
 	for _, name := range templateNames {
 		templatePath := path.Join(baseDir, "_templates", name) + ".html"
 
-		fmt.Println(templatePath)
 		templateContents, err := ioutil.ReadFile(templatePath)
 
-		fmt.Println(string(templateContents))
 		if err != nil {
 			return nil, fmt.Errorf("Could not read template %v: %v", name, err)
 		}
