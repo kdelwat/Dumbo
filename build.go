@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"text/template"
 
 	"github.com/russross/blackfriday"
@@ -107,6 +108,8 @@ func buildMD(input inputFile, templates map[string]*template.Template, dest stri
 	// Render as HTML
 	html := blackfriday.Run(contents)
 
+	title := getTitle(html)
+
 	// Open the destination file for writing
 	outFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE, 0644)
 
@@ -117,7 +120,7 @@ func buildMD(input inputFile, templates map[string]*template.Template, dest stri
 	w := bufio.NewWriter(outFile)
 
 	// Render the template and write it to the destination
-	templates[input.template].Execute(w, templateInput{Content: string(html), Title: "A title"})
+	templates[input.template].Execute(w, templateInput{Content: string(html), Title: title})
 
 	err = w.Flush()
 
@@ -131,7 +134,7 @@ func buildMD(input inputFile, templates map[string]*template.Template, dest stri
 		return fmt.Errorf("Could not close file %q: %v", dest, err)
 	}
 
-	fmt.Printf("[BUILT]   %q\n", dest)
+	fmt.Printf("[BUILT]   %q (%v)\n", dest, title)
 
 	return nil
 }
@@ -160,4 +163,10 @@ func exists(path string) (bool, error) {
 		return false, nil
 	}
 	return true, err
+}
+
+func getTitle(html []byte) string {
+	re := regexp.MustCompile(`<h1>(.*)</h1>`)
+
+	return re.FindStringSubmatch(string(html))[1]
 }
