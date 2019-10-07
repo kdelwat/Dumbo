@@ -42,10 +42,6 @@ func scan(basedir string) ([]inputFile, error) {
 		// Get the file extension
 		extension := filepath.Ext(path)
 
-		if extension == ".html" {
-			inputFiles = append(inputFiles, inputFile{source: path, dest: dest, extension: "html"})
-		}
-
 		if extension == ".md" {
 			// If the file is Markdown, it is rendered via a template
 			template, err := getTemplate(path)
@@ -55,6 +51,8 @@ func scan(basedir string) ([]inputFile, error) {
 			}
 
 			inputFiles = append(inputFiles, inputFile{source: path, dest: dest, template: template, extension: "md"})
+		} else if extension != "" {
+			inputFiles = append(inputFiles, inputFile{source: path, dest: dest, extension: extension[1:]})
 		}
 
 		return nil

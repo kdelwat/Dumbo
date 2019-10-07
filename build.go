@@ -59,7 +59,13 @@ func build(inputFiles []inputFile, templates map[string]*template.Template, dest
 // buildFile renders an input file as HTML
 func buildFile(input inputFile, templates map[string]*template.Template, destDir string) error {
 	// Get the output filename
-	destFileName := makeDestFilename(input.dest, destDir)
+	var destFileName string
+
+	if input.extension == "md" {
+		destFileName = makeDestFilename(input.dest, destDir, "html")
+	} else {
+		destFileName = makeDestFilename(input.dest, destDir, input.extension)
+	}
 
 	// Create the path to the filename if needed
 	err := os.MkdirAll(filepath.Dir(destFileName), 0755)
@@ -68,17 +74,15 @@ func buildFile(input inputFile, templates map[string]*template.Template, destDir
 		return fmt.Errorf("Could not create directory %q: %v", filepath.Dir(destFileName), err)
 	}
 
-	if input.extension == "html" {
-		return buildHTML(input, destFileName)
-	} else if input.extension == "md" {
+	if input.extension == "md" {
 		return buildMD(input, templates, destFileName)
 	} else {
-		return fmt.Errorf("Unsupported file type: %v", input.extension)
+		return copyFile(input, destFileName)
 	}
 }
 
-// buildHTML builds a HTML file by copying it from input to output unmodified
-func buildHTML(input inputFile, dest string) error {
+// copyFile copies a file from input to output unmodified
+func copyFile(input inputFile, dest string) error {
 	contents, err := ioutil.ReadFile(input.source)
 
 	if err != nil {
@@ -139,8 +143,8 @@ func buildMD(input inputFile, templates map[string]*template.Template, dest stri
 	return nil
 }
 
-func makeDestFilename(dest string, destDir string) string {
-	return path.Join(destDir, dest) + ".html"
+func makeDestFilename(dest string, destDir string, extension string) string {
+	return path.Join(destDir, dest) + "." + extension
 }
 
 func hasSelectedTemplate(templateNames []string, target string) bool {

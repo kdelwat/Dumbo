@@ -31,6 +31,7 @@ _templates/
   ...
 a.html
 b.post.md
+z.png
 c/
   d.page.md
   e/
@@ -38,7 +39,7 @@ c/
     g.html
 ```
 
-Any HTML files will be copied verbatim to the output directory.
+Any non-Markdown files will be copied verbatim to the output directory.
 
 Markdown files are named in the form `<name>.<template>.md`. The template must be present in the `_templates` folder. They will be rendered as HTML using this template.
 
