@@ -87,7 +87,7 @@ func getDest(path string, basedir string) string {
 // getTemplate extracts the name of the template used for a Markdown file
 // e.g. baseDir/a/b/test.page.md -> page
 func getTemplate(path string) (string, error) {
-	re := regexp.MustCompile(`\.(\w*)\.\w*$`)
+	re := regexp.MustCompile(`\.(\w+)\.\w+$`)
 
 	matches := re.FindAllString(path, 1)
 
