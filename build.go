@@ -18,7 +18,22 @@ type templateInput struct {
 }
 
 func build(inputFiles []inputFile, templates map[string]*template.Template, destDir string) error {
-	err := os.MkdirAll(destDir, 0755)
+	doesOutputDirExist, err := exists(destDir)
+
+	if err != nil {
+		return fmt.Errorf("Could not check existence of output directory %q: %v", destDir, err)
+	}
+
+	if doesOutputDirExist {
+		err := os.RemoveAll(destDir)
+
+		if err != nil {
+			return fmt.Errorf("Could not remove output directory %q: %v", destDir, err)
+		}
+
+	}
+
+	err = os.MkdirAll(destDir, 0755)
 
 	if err != nil {
 		return fmt.Errorf("Could not create destination directory %q: %v", destDir, err)
@@ -121,4 +136,16 @@ func hasSelectedTemplate(templateNames []string, target string) bool {
 	}
 
 	return false
+}
+
+// https://stackoverflow.com/a/10510783
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return true, err
 }
