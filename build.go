@@ -168,5 +168,11 @@ func exists(path string) (bool, error) {
 func getTitle(html []byte) string {
 	re := regexp.MustCompile(`<h1>(.*)</h1>`)
 
-	return re.FindStringSubmatch(string(html))[1]
+	submatches := re.FindStringSubmatch(string(html))
+
+	if len(submatches) == 0 {
+		return "Unknown"
+	}
+
+	return string(submatches[1])
 }
